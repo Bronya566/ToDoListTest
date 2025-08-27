@@ -9,9 +9,10 @@ import UIKit
 
 final class CountTaskView: UIView {
     
+    var actionHandler: (() -> Void)?
+    
     private let taskTitle: UILabel = {
         let taskTitle = UILabel()
-        taskTitle.text = "Загружаю задачи..."
         taskTitle.textColor = .white
         taskTitle.textAlignment = .center
         return taskTitle
@@ -19,15 +20,16 @@ final class CountTaskView: UIView {
     
     private let taskCount: UILabel = {
         let taskCount = UILabel()
-        taskCount.text = "89089897"
         taskCount.textAlignment = .right
         taskCount.textColor = .white
         return taskCount
     }()
     
-    private let taskButton: UIButton = {
+    private lazy var taskButton: UIButton = {
         let taskButton = UIButton()
         taskButton.setImage(UIImage(named: "buttonIcon"), for: .normal)
+        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tap))
+        taskButton.addGestureRecognizer(gestureRecognizer)
         return taskButton
     }()
     
@@ -41,11 +43,16 @@ final class CountTaskView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    func setupCount(taskCount: Int) {
+        taskTitle.text = "\(String(taskCount)) задач"
+    }
 }
 
 private extension CountTaskView {
-    func setupCount(taskCount: Int) {
-        self.taskCount.text = "\(String(taskCount)) задач"
+    
+    @objc func tap() {
+        actionHandler?()
     }
     
     func setupUI() {

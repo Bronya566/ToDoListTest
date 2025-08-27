@@ -7,29 +7,52 @@
 
 import UIKit
 
-protocol MainViewControllerProtocol {}
+protocol MainViewControllerProtocol: AnyObject {
+    func updateItems(cells: [TableViewItemServiceable])
+    func updateCounts(counts: Int)
+    func updateCountTaskView(action: (() -> Void)?)
+}
 
 final class MainViewController: UIViewController, MainViewControllerProtocol {
     
     private let tableView = MainTableView()
     private let countTaskView = CountTaskView()
+    private let presenter: PresenterProtocol
+    
+    init(presenter: PresenterProtocol) {
+        self.presenter = presenter
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        presenter.viewDidLoad()
         setupNavBar()
         setupTableView()
         setupUI()
         setupConstraints()
     }
     
+    func updateItems(cells: [TableViewItemServiceable]) {
+        tableView.setItems(items: cells)
+    }
+    
+    func updateCounts(counts: Int) {
+        countTaskView.setupCount(taskCount: counts)
+    }
+    
+    func updateCountTaskView(action: (() -> Void)?) {
+        countTaskView.actionHandler = action
+    }
+    
     private func setupTableView() {
         tableView.backgroundColor = .black
         tableView.register(CustomTableViewCell.self, forCellReuseIdentifier: "Cell")
         tableView.register(SearchBarViewCell.self, forCellReuseIdentifier: "SearchBarViewCell")
-        let item = CustomTableViewCell()
-        item.model = TaskModelCellData(title: "Прочитать книгу", subtitle: "Составить список необходимых продуктов для ужина. Не забыть проверить, что уже есть в холодильнике.", date: "09/10/24", isChecked: true)
-        let searchItem = SearchBarViewCell()
-        tableView.setItems(items: [searchItem, item])
     }
     
     private func setupNavBar() {

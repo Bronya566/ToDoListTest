@@ -10,13 +10,18 @@ import UIKit
 final class CustomTableViewCell: UITableViewCell {
     
     var model: ModelProtocol?
+    private var actionHandler: (() -> Void)?
+    var deleteAction: (() -> Void)?
     
     private var isChecked: Bool = false
     private let sizeTextCell: CGFloat = 12
     
-    private var checkImageView: UIImageView = {
+    private lazy var checkImageView: UIImageView = {
         let checkImage = UIImage()
         let checkView = UIImageView(image: checkImage)
+        checkView.isUserInteractionEnabled = true
+        let gestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(tapCheck))
+        checkView.addGestureRecognizer(gestureRecognizer)
         checkView.translatesAutoresizingMaskIntoConstraints = false
         return checkView
     }()
@@ -46,6 +51,7 @@ final class CustomTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .default, reuseIdentifier: .none)
+        setupContextMenu()
         setupUI()
         setupConstraints()
         setupGestureRecognizer()
@@ -70,6 +76,8 @@ extension CustomTableViewCell: TableViewItemServiceable {
     
     func updateModel(_ model: ModelProtocol?) {
         guard let model = model as? TaskModelCellData else { return }
+        actionHandler = model.actionHandler
+        deleteAction = model.deleteAction
         setupData(model: model)
     }
 }
@@ -126,8 +134,40 @@ private extension CustomTableViewCell {
 }
 
 private extension CustomTableViewCell {
-    @objc func tap() {
+    
+    @objc func tapCheck() {
         isChecked.toggle()
         updateStatus()
+    }
+    
+    @objc func tap() {
+        actionHandler?()
+    }
+}
+
+extension CustomTableViewCell: UIContextMenuInteractionDelegate {
+    
+    private func setupContextMenu() {
+        let interaction = UIContextMenuInteraction(delegate: self)
+        self.addInteraction(interaction)
+    }
+    
+    
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let actionEdit = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { _ in
+                //добавить действие
+            }
+            
+            let actionShare = UIAction(title: "Поделиться", image: UIImage(systemName: "square.and.arrow.up")) { _ in
+                //добавить действие
+            }
+            
+            let actionDelete = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                self?.deleteAction?()
+            }
+            
+            return UIMenu(title: "", children: [actionEdit, actionShare, actionDelete])
+        }
     }
 }

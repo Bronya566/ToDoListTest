@@ -10,4 +10,6 @@ struct TaskModelCellData: ModelProtocol {
     var subtitle: String?
     var date: String
     var isChecked: Bool
+    var actionHandler: (() -> Void)?
+    var deleteAction: (() -> Void)?
 }
